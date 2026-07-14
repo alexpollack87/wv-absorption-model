@@ -486,7 +486,7 @@ document.addEventListener("click", ev => {
     const body = (state.notes ? state.notes + "\n\n" : "") +
       "Open my scenario here:\n" + shareURL() +
       "\n\n(If the link is cut off by your mail client, use the model's Download scenario (JSON) button and attach the file instead.)";
-    location.href = "mailto:alex@mosaic.us?subject=" + encodeURIComponent(subj) + "&body=" + encodeURIComponent(body);
+    location.href = "mailto:alexmpollack@gmail.com?subject=" + encodeURIComponent(subj) + "&body=" + encodeURIComponent(body);
   } else if (ev.target.id === "dlJson"){
     downloadFile(`spa3_scenario_${slug()}_${stamp()}.json`, "application/json",
       JSON.stringify({exported: new Date().toISOString(), ...state}, null, 2));
