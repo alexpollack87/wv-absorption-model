@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>SPA 3 Absorption Scenario Model — interactive</title>
+<style>
+:root{
+  --surface:#fcfcfb; --page:#f9f9f7; --ink:#0b0b0b; --sec:#52514e; --mut:#898781;
+  --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,.10);
+  --bond:#2a78d6; --nobond:#eb6834; --navy:#1f3a5f; --band-op:.13;
+  --input-bg:#ffffff; --th-bg:#eef2f7;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --surface:#1a1a19; --page:#0d0d0d; --ink:#ffffff; --sec:#c3c2b7; --mut:#898781;
+    --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
+    --bond:#3987e5; --nobond:#d95926; --navy:#9ec5f4;
+    --input-bg:#242423; --th-bg:#242c36;
+  }
+}
+*{box-sizing:border-box}
+body{font-family:system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;background:var(--page);
+color:var(--ink);margin:0;padding:28px 20px;line-height:1.5;font-size:14px}
+.wrap{max-width:1150px;margin:0 auto}
+.confidential{background:#9b2c25;color:#fff;padding:5px 14px;border-radius:4px;font-size:12px;
+font-weight:600;letter-spacing:.04em;margin-bottom:16px;text-align:center}
+h1{font-size:22px;color:var(--navy);border-bottom:3px solid var(--navy);padding-bottom:8px;margin:0 0 4px}
+h2{font-size:16px;color:var(--navy);margin:26px 0 8px}
+.sub{color:var(--sec);font-size:12.5px;margin-bottom:18px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;margin:12px 0}
+.controls{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end}
+.ctl label{display:block;font-size:11px;color:var(--mut);margin-bottom:3px;text-transform:uppercase;letter-spacing:.03em}
+.ctl input,.ctl select,.ctl textarea{width:90px;padding:5px 7px;border:1px solid var(--axis);border-radius:5px;
+background:var(--input-bg);color:var(--ink);font-size:13px;font-variant-numeric:tabular-nums}
+.ctl select{width:150px}
+.ctl textarea{width:100%;font-variant-numeric:normal;font-family:inherit;resize:vertical}
+table{border-collapse:collapse;width:100%;font-size:12.5px;font-variant-numeric:tabular-nums}
+th,td{border:1px solid var(--grid);padding:4px 7px;text-align:right;vertical-align:middle}
+th{background:var(--th-bg);color:var(--navy);font-size:11.5px;text-align:right}
+th:first-child,td:first-child{text-align:left}
+td input{width:64px;padding:3px 5px;border:1px solid var(--axis);border-radius:4px;background:var(--input-bg);
+color:var(--ink);font-size:12.5px;text-align:right;font-variant-numeric:tabular-nums}
+td input.name{width:230px;text-align:left}
+td input.blankable::placeholder{color:var(--mut)}
+button{background:var(--navy);color:#fff;border:none;border-radius:5px;padding:7px 14px;font-size:13px;
+cursor:pointer;margin-right:8px}
+button.ghost{background:transparent;color:var(--navy);border:1px solid var(--axis)}
+.kpis{display:flex;flex-wrap:wrap;gap:12px;margin:14px 0}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 16px;min-width:150px}
+.kpi .v{font-size:22px;font-weight:650}
+.kpi .l{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.03em}
+.kpi.bond .v{color:var(--bond)} .kpi.nobond .v{color:var(--nobond)}
+.legend{display:flex;gap:18px;font-size:12.5px;color:var(--sec);margin:4px 0 6px}
+.legend .sw{display:inline-block;width:18px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
+.chartbox{position:relative}
+svg{display:block;width:100%;height:auto}
+.tooltip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--border);
+border-radius:6px;padding:6px 10px;font-size:12px;color:var(--ink);box-shadow:0 2px 8px rgba(0,0,0,.15);
+display:none;white-space:nowrap;z-index:5}
+.scroll{overflow-x:auto}
+.note{font-size:12px;color:var(--sec);margin-top:8px}
+.del{background:transparent;border:none;color:var(--mut);cursor:pointer;font-size:14px;padding:0 4px;margin:0}
+.seg{display:inline-flex;border:1px solid var(--axis);border-radius:6px;overflow:hidden}
+.seg button{margin:0;border-radius:0;background:transparent;color:var(--sec);padding:5px 12px;font-size:12.5px}
+.seg button.on{background:var(--navy);color:#fff}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="confidential">CONFIDENTIAL — for invited review only · please do not redistribute</div>
+<h1>SPA 3 Absorption Scenario Model</h1>
+<div class="sub">Sewer bond approved (750k GPD expansion) vs no approval — store-based engine.
+Edit anything: values recalc live and persist in this browser. Sources: Zonda lot inventory &amp; absorption (6/2026) ·
+SPA 3 WRF capacity tracking (4/2026) · 750k GPD expansion proforma (6/2026) · plat recount / sewer waterfall (7/2026).</div>
+
+<div class="card">
+  <div class="controls">
+    <div class="ctl"><label>Slowdown (u/store/mo)</label><input id="rSlow" type="number" step="0.01"></div>
+    <div class="ctl"><label>Current (u/store/mo)</label><input id="rCur" type="number" step="0.01"></div>
+    <div class="ctl"><label>Normal (u/store/mo)</label><input id="rNorm" type="number" step="0.01"></div>
+    <div class="ctl"><label>Chart line uses</label>
+      <select id="rateSel"><option value="slow">Moderate Slowdown</option>
+      <option value="cur" selected>Current Market</option><option value="norm">Normal Market</option></select></div>
+    <div class="ctl"><label>Opening-yr factor</label><input id="ramp" type="number" step="0.05" min="0" max="1"></div>
+    <div class="ctl"><label>2026 actual (u/yr)</label><input id="anchor" type="number" step="1"></div>
+    <div class="ctl"><button class="ghost" id="reset">Reset to defaults</button></div>
+  </div>
+  <div class="note">Band on charts = Slowdown-to-Normal range. The 2026 actual replaces the computed pace for any
+  project open in 2026 (today: only the actives row). A per-project <b>pace override</b> replaces the scenario rate
+  for that project in all years. Blank open year = project never opens in that scenario.</div>
+</div>
+
+<div class="card">
+  <div class="controls">
+    <div class="ctl"><label>Reviewer</label><input id="reviewer" type="text" style="width:170px" placeholder="your name"></div>
+    <div class="ctl" style="flex:1;min-width:280px"><label>Notes / suggestions for the modeling team</label>
+      <textarea id="notes" rows="2" placeholder="what you changed and why…"></textarea></div>
+  </div>
+  <div style="margin-top:10px">
+    <button id="shareLink">Copy share link</button>
+    <button id="emailAlex" class="ghost">Email scenario to Alex</button>
+    <button id="dlJson" class="ghost">Download scenario (JSON)</button>
+    <button id="imJson" class="ghost">Import scenario</button>
+    <button id="dlCsv" class="ghost">Download results (CSV)</button>
+    <input type="file" id="fileIn" accept=".json,application/json" style="display:none">
+    <span id="shareMsg" class="note" style="margin-left:8px"></span>
+  </div>
+  <div class="note" id="hashNotice" style="display:none;font-weight:600"></div>
+  <div class="note">The <b>share link</b> carries your full scenario (all inputs + notes) in the URL — send it and the
+  recipient opens exactly what you built. JSON download does the same as a file. Your edits never change anyone
+  else's view.</div>
+</div>
+
+<h2>Projects</h2>
+<div class="card scroll">
+<table id="projTable">
+  <thead><tr>
+    <th>Project</th><th>Lots — no bond</th><th>Lots — bond</th><th>Stores</th>
+    <th>Open (no bond)</th><th>Open (bond)</th><th>Pace override</th><th></th>
+  </tr></thead>
+  <tbody></tbody>
+</table>
+<div style="margin-top:10px"><button class="ghost" id="addRow">+ Add project</button></div>
+</div>
+
+<div class="kpis" id="kpis"></div>
+
+<h2>Annual absorption (closings / year)</h2>
+<div class="legend">
+  <span><span class="sw" style="background:var(--bond)"></span>Bond approved</span>
+  <span><span class="sw" style="background:var(--nobond)"></span>No bond</span>
+  <span><span class="sw" style="background:var(--mut);height:1px"></span>SPA 2 (Asante) velocity ~1,699/yr</span>
+</div>
+<div class="card chartbox"><svg id="chartAnnual" viewBox="0 0 1080 420"></svg><div class="tooltip" id="tipA"></div></div>
+
+<h2>Cumulative closings vs sewered lot supply</h2>
+<div class="card chartbox"><svg id="chartCum" viewBox="0 0 1080 420"></svg><div class="tooltip" id="tipC"></div></div>
+
+<h2>Results (chart-line rate)</h2>
+<div class="card scroll"><table id="resTable"></table></div>
+
+<h2>Per-project breakout
+  <span class="seg" style="margin-left:12px;font-weight:normal">
+    <button id="bkNB" class="on">No bond</button><button id="bkB">Bond</button>
+  </span>
+</h2>
+<div class="card scroll"><table id="bkTable"></table></div>
+
+<div class="note">Engine: closings = stores × rate × 12, capped by remaining lots; opening year × opening-yr factor.
+Excluded from both pools: Courtland/Austin Ranch 1,642 unallocated EDU; North Copper Canyon / Rio Rancho / Willow
+Trails (outside Zonda SPA 3 boundary). Bond pool = 750k GPD roster; plant online ~2030. Flag: Zonda actives include
+"Meritage MMR at Frontera" 41 lots that may overlap the MMR remaining row (~0.7% of pool).</div>
+</div>
+
+<script>
+"use strict";
+const YEARS = []; for (let y=2026; y<=2040; y++) YEARS.push(y);
+const DEFAULTS = {
+  rates:{slow:1.90, cur:3.08, norm:4.00}, ramp:0.5, anchor:147, reviewer:"", notes:"",
+  projects:[
+    {n:"SPA 3 actives (Century ×2, Meritage, Risewell ×3)", lnb:506,  lb:506,  s:6, onb:2026, ob:2026, p:null},
+    {n:"Lennar SF Phase 1",                                 lnb:809,  lb:809,  s:6, onb:2027, ob:2027, p:null},
+    {n:"Rancho Vista Parcel 3 (Century)",                   lnb:116,  lb:116,  s:1, onb:2027, ob:2027, p:null},
+    {n:"MMR Phase 1 remaining (TNHC/Meritage)",             lnb:415,  lb:415,  s:4, onb:2027, ob:2027, p:null},
+    {n:"SF Phase 2",                                        lnb:560,  lb:560,  s:5, onb:2028, ob:2028, p:null},
+    {n:"SF Phase 3",                                        lnb:558,  lb:558,  s:5, onb:2029, ob:2029, p:null},
+    {n:"Desert Trails — sewered (of 1,954)",                lnb:881,  lb:881,  s:5, onb:2029, ob:2029, p:null},
+    {n:"Buena Vista Ranch — sewered (of 1,285)",            lnb:631,  lb:631,  s:4, onb:2030, ob:2030, p:null},
+    {n:"Ana Mandara — sewered 589 + 750k 250 (of 1,113)",   lnb:589,  lb:839,  s:4, onb:2030, ob:2030, p:null},
+    {n:"SF Phase 4 (812 alloc; 777 covered w/o bond)",      lnb:777,  lb:812,  s:5, onb:2031, ob:2031, p:null},
+    {n:"MMR expansion / MMI (bond)",                        lnb:0,    lb:975,  s:5, onb:null, ob:2030, p:null},
+    {n:"Surprise 120 — Shokoohi/Cork",                      lnb:0,    lb:370,  s:2, onb:null, ob:2030, p:null},
+    {n:"Surprise 140 W/E — Mattamy+Beazer escrows",         lnb:0,    lb:525,  s:3, onb:null, ob:2030, p:null},
+    {n:"Desert Moon — Jewel",                               lnb:0,    lb:163,  s:1, onb:null, ob:2030, p:null},
+    {n:"Surprise 320 — Triangle Partners",                  lnb:0,    lb:833,  s:5, onb:null, ob:2031, p:null},
+    {n:"Surprise 295 — Hampton",                            lnb:0,    lb:873,  s:5, onb:null, ob:2031, p:null},
+    {n:"Surprise 233 — Kazan",                              lnb:0,    lb:400,  s:2, onb:null, ob:2031, p:null},
+    {n:"SF Phase 5 + other",                                lnb:0,    lb:519,  s:3, onb:null, ob:2032, p:null},
+  ]
+};
+const LS_KEY = "spa3_absorption_model_v3";   // v3 = 7/9 regen — clears saved browser state; baseline: Ph2 label, Ph3 2029, Ana Mandara 839 bond
+let bkScen = "nb";
+let viewingShared = false, dirty = false, lastRuns = null;
+
+function withDefaults(s){
+  const d = JSON.parse(JSON.stringify(DEFAULTS));
+  return Object.assign(d, s, {rates: Object.assign(d.rates, (s && s.rates) || {})});
+}
+function load(){
+  try{ const s = JSON.parse(localStorage.getItem(LS_KEY)); if (s && s.projects && s.rates) return withDefaults(s); }catch(e){}
+  return JSON.parse(JSON.stringify(DEFAULTS));
+}
+function save(){ if (viewingShared && !dirty) return; localStorage.setItem(LS_KEY, JSON.stringify(state)); }
+
+// ---------- shared-scenario encoding (URL hash / JSON file) ----------
+function encodeState(){
+  const json = JSON.stringify(state);
+  return btoa(unescape(encodeURIComponent(json))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+}
+function decodeState(s){
+  s = s.replace(/-/g,"+").replace(/_/g,"/"); while (s.length % 4) s += "=";
+  return withDefaults(JSON.parse(decodeURIComponent(escape(atob(s)))));
+}
+function shareURL(){
+  return location.href.split("#")[0] + "#s=" + encodeState();
+}
+function loadFromHash(){
+  if (!location.hash.startsWith("#s=")) return null;
+  try{ return decodeState(location.hash.slice(3)); }catch(e){ return null; }
+}
+let state = loadFromHash() || load();
+if (location.hash.startsWith("#s=") && state){
+  viewingShared = true;
+  document.addEventListener("DOMContentLoaded", () => {
+    const n = document.getElementById("hashNotice");
+    n.style.display = "block";
+    n.textContent = "Viewing a shared scenario" + (state.reviewer ? ` from ${state.reviewer}` : "") +
+      ". Edits you make are saved to your own copy and don't affect the sender's.";
+  });
+}
+function fmt(x){ return Math.round(x).toLocaleString("en-US"); }
+
+// ---------- engine ----------
+function simulate(scen, rate){           // scen: "nb" | "b"
+  const rem = state.projects.map(p => scen==="nb" ? p.lnb : p.lb);
+  const per = state.projects.map(() => []);
+  const annual = [], stores = [];
+  YEARS.forEach(yr => {
+    let tot = 0, st = 0;
+    state.projects.forEach((p, i) => {
+      const oy = scen==="nb" ? p.onb : p.ob;
+      if (oy == null || yr < oy || rem[i] <= 0){ per[i].push(0); return; }
+      const r = (p.p != null && p.p !== "") ? +p.p : rate;
+      let pace = p.s * r * 12 * (yr === oy ? state.ramp : 1);
+      if (yr === 2026) pace = state.anchor;
+      const sold = Math.min(pace, rem[i]);
+      rem[i] -= sold; tot += sold; st += p.s;
+      per[i].push(sold);
+    });
+    annual.push(tot); stores.push(st);
+  });
+  const cum = []; annual.reduce((a, v) => { const c = a + v; cum.push(c); return c; }, 0);
+  return {annual, cum, stores, per};
+}
+function pools(){
+  return { nb: state.projects.reduce((a,p)=>a+(+p.lnb||0),0),
+           b:  state.projects.reduce((a,p)=>a+(+p.lb ||0),0) };
+}
+
+// ---------- charts ----------
+function niceMax(v){ const steps=[100,200,250,500,1000,2000,2500,5000];
+  for (const s of steps){ const m = Math.ceil(v/s)*s; if (m/s <= 8 && m >= v) return {max:m, step:s}; }
+  return {max:Math.ceil(v/5000)*5000, step:5000}; }
+
+function drawChart(svgId, tipId, seriesSet, opts){
+  const svg = document.getElementById(svgId), tip = document.getElementById(tipId);
+  const W=1080, H=420, L=70, R=20, T=18, B=40;
+  const allVals = [];
+  seriesSet.forEach(s => { allVals.push(...s.hi); });
+  (opts.hlines||[]).forEach(h => allVals.push(h.y));
+  const {max:yMax, step:yStep} = niceMax(Math.max(...allVals) * 1.05);
+  const x = yr => L + (yr - YEARS[0]) / (YEARS[YEARS.length-1] - YEARS[0]) * (W - L - R);
+  const y = v  => T + (1 - v / yMax) * (H - T - B);
+  let g = "";
+  for (let v = 0; v <= yMax; v += yStep)
+    g += `<line x1="${L}" y1="${y(v)}" x2="${W-R}" y2="${y(v)}" stroke="var(--grid)" stroke-width="1"/>
+          <text x="${L-8}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="var(--mut)">${fmt(v)}</text>`;
+  YEARS.forEach(yr => { if (yr % 2 === 0)
+    g += `<text x="${x(yr)}" y="${H-B+18}" text-anchor="middle" font-size="11" fill="var(--mut)">${yr}</text>`; });
+  g += `<line x1="${L}" y1="${y(0)}" x2="${W-R}" y2="${y(0)}" stroke="var(--axis)" stroke-width="1"/>`;
+  (opts.hlines||[]).forEach(h => {
+    g += `<line x1="${L}" y1="${y(h.y)}" x2="${W-R}" y2="${y(h.y)}" stroke="${h.c}" stroke-width="1" stroke-dasharray="5 4"/>
+          <text x="${L+6}" y="${y(h.y)-5}" font-size="11" fill="var(--sec)">${h.label}</text>`; });
+  (opts.vlines||[]).forEach(v => {
+    g += `<line x1="${x(v.x)}" y1="${T}" x2="${x(v.x)}" y2="${H-B}" stroke="var(--grid)" stroke-width="1"/>
+          <text x="${x(v.x)+4}" y="${T+12}" font-size="10.5" fill="var(--mut)">${v.label}</text>`; });
+  seriesSet.forEach(s => {
+    const band = YEARS.map((yr,i)=>`${x(yr)},${y(s.hi[i])}`).join(" ") + " " +
+                 YEARS.slice().reverse().map((yr)=>{const i=YEARS.indexOf(yr);return `${x(yr)},${y(s.lo[i])}`;}).join(" ");
+    g += `<polygon points="${band}" fill="${s.color}" opacity="var(--band-op)"/>`;
+  });
+  seriesSet.forEach(s => {
+    const pts = YEARS.map((yr,i)=>`${x(yr)},${y(s.mid[i])}`).join(" ");
+    g += `<polyline points="${pts}" fill="none" stroke="${s.color}" stroke-width="2.5" stroke-linejoin="round"/>`;
+  });
+  g += `<line id="${svgId}-cross" x1="0" y1="${T}" x2="0" y2="${H-B}" stroke="var(--axis)" stroke-width="1" visibility="hidden"/>`;
+  g += `<rect x="${L}" y="${T}" width="${W-L-R}" height="${H-T-B}" fill="transparent" id="${svgId}-hit"/>`;
+  svg.innerHTML = g;
+  const hit = document.getElementById(svgId + "-hit"), cross = document.getElementById(svgId + "-cross");
+  hit.addEventListener("mousemove", ev => {
+    const r = svg.getBoundingClientRect();
+    const mx = (ev.clientX - r.left) * (W / r.width);
+    let yr = Math.round(YEARS[0] + (mx - L) / (W - L - R) * (YEARS[YEARS.length-1] - YEARS[0]));
+    yr = Math.max(YEARS[0], Math.min(YEARS[YEARS.length-1], yr));
+    const i = yr - YEARS[0];
+    cross.setAttribute("x1", x(yr)); cross.setAttribute("x2", x(yr));
+    cross.setAttribute("visibility", "visible");
+    tip.style.display = "block";
+    tip.innerHTML = `<b>${yr}</b><br>` + seriesSet.map(s =>
+      `<span style="color:${s.color}">●</span> ${s.name}: <b>${fmt(s.mid[i])}</b>`).join("<br>");
+    const box = svg.parentElement.getBoundingClientRect();
+    let tx = ev.clientX - box.left + 14, ty = ev.clientY - box.top - 10;
+    if (tx > box.width - 190) tx -= 210;
+    tip.style.left = tx + "px"; tip.style.top = ty + "px";
+  });
+  hit.addEventListener("mouseleave", () => { tip.style.display = "none"; cross.setAttribute("visibility","hidden"); });
+}
+
+// ---------- render ----------
+function projRow(p, i){
+  const yv = v => v == null ? "" : v;
+  return `<tr>
+    <td><input class="name" data-i="${i}" data-k="n" value="${p.n.replace(/"/g,"&quot;")}"></td>
+    <td><input data-i="${i}" data-k="lnb" type="number" min="0" value="${p.lnb}"></td>
+    <td><input data-i="${i}" data-k="lb" type="number" min="0" value="${p.lb}"></td>
+    <td><input data-i="${i}" data-k="s" type="number" min="0" value="${p.s}"></td>
+    <td><input class="blankable" data-i="${i}" data-k="onb" type="number" placeholder="—" value="${yv(p.onb)}"></td>
+    <td><input class="blankable" data-i="${i}" data-k="ob" type="number" placeholder="—" value="${yv(p.ob)}"></td>
+    <td><input class="blankable" data-i="${i}" data-k="p" type="number" step="0.01" placeholder="scen." value="${yv(p.p)}"></td>
+    <td><button class="del" data-del="${i}" title="Remove">✕</button></td>
+  </tr>`;
+}
+function renderProjects(){
+  document.querySelector("#projTable tbody").innerHTML =
+    state.projects.map(projRow).join("");
+}
+function recalc(){
+  const rates = state.rates;
+  const sel = document.getElementById("rateSel").value;
+  const midRate = rates[sel];
+  const loRate = Math.min(rates.slow, rates.cur, rates.norm);
+  const hiRate = Math.max(rates.slow, rates.cur, rates.norm);
+  const P = pools();
+  const runs = {};
+  [["nb",loRate,"lo"],["nb",midRate,"mid"],["nb",hiRate,"hi"],
+   ["b",loRate,"lo"],["b",midRate,"mid"],["b",hiRate,"hi"]].forEach(([sc,r,k])=>{
+    runs[sc+k] = simulate(sc, r);
+  });
+  lastRuns = {runs, rateName: document.getElementById("rateSel").selectedOptions[0].textContent, rate: midRate};
+  const css = getComputedStyle(document.documentElement);
+  const cBond = css.getPropertyValue("--bond").trim(), cNo = css.getPropertyValue("--nobond").trim();
+
+  // KPIs
+  const nbPeak = Math.max(...runs.nbmid.annual), bPeak = Math.max(...runs.bmid.annual);
+  const nbOut = YEARS.find((y,i)=>runs.nbmid.cum[i] >= P.nb*0.999) || "—";
+  const bOut  = YEARS.find((y,i)=>runs.bmid.cum[i] >= P.b*0.999) || "—";
+  const delta = runs.bmid.cum[YEARS.length-1] - runs.nbmid.cum[YEARS.length-1];
+  document.getElementById("kpis").innerHTML = `
+    <div class="kpi nobond"><div class="l">No-bond pool</div><div class="v">${fmt(P.nb)}</div></div>
+    <div class="kpi bond"><div class="l">Pool with bond</div><div class="v">${fmt(P.b)}</div></div>
+    <div class="kpi nobond"><div class="l">No-bond peak /yr</div><div class="v">${fmt(nbPeak)}</div></div>
+    <div class="kpi bond"><div class="l">Bond peak /yr</div><div class="v">${fmt(bPeak)}</div></div>
+    <div class="kpi nobond"><div class="l">No-bond sellout</div><div class="v">${nbOut}</div></div>
+    <div class="kpi bond"><div class="l">Bond sellout</div><div class="v">${bOut}</div></div>
+    <div class="kpi bond"><div class="l">Cum Δ by 2040</div><div class="v">+${fmt(delta)}</div></div>`;
+
+  drawChart("chartAnnual","tipA",
+    [{name:"Bond approved", color:cBond, mid:runs.bmid.annual, lo:runs.blo.annual, hi:runs.bhi.annual},
+     {name:"No bond", color:cNo, mid:runs.nbmid.annual, lo:runs.nblo.annual, hi:runs.nbhi.annual}],
+    {hlines:[{y:1699, c:"var(--mut)", label:"SPA 2 (Asante) velocity ~1,699/yr"}],
+     vlines:[{x:2030, label:"expansion online"}]});
+  drawChart("chartCum","tipC",
+    [{name:"Bond approved", color:cBond, mid:runs.bmid.cum, lo:runs.blo.cum, hi:runs.bhi.cum},
+     {name:"No bond", color:cNo, mid:runs.nbmid.cum, lo:runs.nblo.cum, hi:runs.nbhi.cum}],
+    {hlines:[{y:P.nb, c:cNo, label:`sewered-today supply ~${fmt(P.nb)}`},
+             {y:P.b, c:cBond, label:`supply incl. expansion ~${fmt(P.b)}`}]});
+
+  // results table
+  let rt = `<tr><th>Year</th><th>No bond /yr</th><th>Bond /yr</th><th>No bond cum</th><th>Bond cum</th><th>Stores nb/b</th></tr>`;
+  YEARS.forEach((yr,i)=>{ rt += `<tr><td style="text-align:left">${yr}</td><td>${fmt(runs.nbmid.annual[i])}</td>
+    <td>${fmt(runs.bmid.annual[i])}</td><td>${fmt(runs.nbmid.cum[i])}</td><td>${fmt(runs.bmid.cum[i])}</td>
+    <td>${runs.nbmid.stores[i]} / ${runs.bmid.stores[i]}</td></tr>`; });
+  document.getElementById("resTable").innerHTML = rt;
+
+  // breakout
+  const run = bkScen === "nb" ? runs.nbmid : runs.bmid;
+  const lotsKey = bkScen === "nb" ? "lnb" : "lb";
+  let bt = `<tr><th>Project</th><th>Lots</th><th>St</th>` +
+    YEARS.filter(y=>y<=2038).map(y=>`<th>'${y%100}</th>`).join("") + `</tr>`;
+  state.projects.forEach((p,i)=>{
+    if (!(+p[lotsKey] > 0)) return;
+    bt += `<tr><td>${p.n}</td><td>${fmt(p[lotsKey])}</td><td>${p.s}</td>` +
+      YEARS.filter(y=>y<=2038).map(y=>{
+        const v = run.per[i][y-YEARS[0]];
+        return `<td>${v >= 0.5 ? fmt(v) : "–"}</td>`;}).join("") + `</tr>`;
+  });
+  const tots = YEARS.filter(y=>y<=2038).map(y=>run.annual[y-YEARS[0]]);
+  bt += `<tr><th style="text-align:left">TOTAL</th><th>${fmt(pools()[bkScen])}</th><th></th>` +
+        tots.map(t=>`<th>${fmt(t)}</th>`).join("") + `</tr>`;
+  document.getElementById("bkTable").innerHTML = bt;
+  save();
+}
+
+// ---------- wiring ----------
+function syncGlobals(){
+  document.getElementById("rSlow").value = state.rates.slow;
+  document.getElementById("rCur").value = state.rates.cur;
+  document.getElementById("rNorm").value = state.rates.norm;
+  document.getElementById("ramp").value = state.ramp;
+  document.getElementById("anchor").value = state.anchor;
+  document.getElementById("reviewer").value = state.reviewer || "";
+  document.getElementById("notes").value = state.notes || "";
+}
+function flash(msg){
+  const el = document.getElementById("shareMsg");
+  el.textContent = msg; setTimeout(() => { if (el.textContent === msg) el.textContent = ""; }, 4000);
+}
+function copyText(txt){
+  if (navigator.clipboard && navigator.clipboard.writeText)
+    return navigator.clipboard.writeText(txt).then(() => true, () => copyFallback(txt));
+  return Promise.resolve(copyFallback(txt));
+}
+function copyFallback(txt){
+  const ta = document.createElement("textarea"); ta.value = txt; document.body.appendChild(ta);
+  ta.select(); let ok = false; try{ ok = document.execCommand("copy"); }catch(e){}
+  document.body.removeChild(ta);
+  if (!ok) window.prompt("Copy this link:", txt);
+  return ok;
+}
+function downloadFile(name, mime, content){
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([content], {type: mime}));
+  a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+function slug(){ return (state.reviewer || "scenario").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") || "scenario"; }
+function stamp(){ const d = new Date(); return d.toISOString().slice(0,10); }
+function resultsCSV(){
+  if (!lastRuns) return "";
+  const r = lastRuns.runs;
+  let out = `# SPA 3 absorption scenario results\n# reviewer: ${state.reviewer || "(unnamed)"} · exported ${stamp()}\n` +
+    `# rate: ${lastRuns.rateName} = ${lastRuns.rate} u/store/mo · opening-yr factor ${state.ramp} · 2026 actual ${state.anchor}\n` +
+    `# notes: ${(state.notes || "").replace(/\r?\n/g," / ")}\n` +
+    `year,no_bond_per_yr,bond_per_yr,no_bond_cum,bond_cum,stores_no_bond,stores_bond\n`;
+  YEARS.forEach((yr,i) => {
+    out += [yr, Math.round(r.nbmid.annual[i]), Math.round(r.bmid.annual[i]), Math.round(r.nbmid.cum[i]),
+            Math.round(r.bmid.cum[i]), r.nbmid.stores[i], r.bmid.stores[i]].join(",") + "\n";
+  });
+  out += `\n# project inputs\nproject,lots_no_bond,lots_bond,stores,open_no_bond,open_bond,pace_override\n`;
+  state.projects.forEach(p => {
+    out += `"${p.n.replace(/"/g,'""')}",${p.lnb},${p.lb},${p.s},${p.onb ?? ""},${p.ob ?? ""},${p.p ?? ""}\n`;
+  });
+  return out;
+}
+document.addEventListener("input", ev => {
+  const t = ev.target;
+  if (t.id === "reviewer"){ state.reviewer = t.value; dirty = true; save(); return; }
+  if (t.id === "notes"){ state.notes = t.value; dirty = true; save(); return; }
+  if (t.id === "rSlow") state.rates.slow = +t.value || 0;
+  else if (t.id === "rCur") state.rates.cur = +t.value || 0;
+  else if (t.id === "rNorm") state.rates.norm = +t.value || 0;
+  else if (t.id === "ramp") state.ramp = +t.value || 0;
+  else if (t.id === "anchor") state.anchor = +t.value || 0;
+  else if (t.dataset && t.dataset.k !== undefined){
+    const p = state.projects[+t.dataset.i], k = t.dataset.k;
+    if (k === "n") p.n = t.value;
+    else if (k === "onb" || k === "ob" || k === "p") p[k] = t.value === "" ? null : +t.value;
+    else p[k] = +t.value || 0;
+  } else return;
+  dirty = true;
+  recalc();
+});
+document.addEventListener("change", ev => { if (ev.target.id === "rateSel") recalc(); });
+document.addEventListener("click", ev => {
+  if (ev.target.id === "reset"){
+    if (confirm("Reset all inputs to the base-case defaults?")){
+      state = JSON.parse(JSON.stringify(DEFAULTS)); viewingShared = false; dirty = true;
+      if (location.hash) history.replaceState(null, "", location.pathname + location.search);
+      syncGlobals(); renderProjects(); recalc();
+    }
+  } else if (ev.target.id === "addRow"){
+    state.projects.push({n:"New project", lnb:0, lb:0, s:1, onb:null, ob:null, p:null});
+    renderProjects(); recalc();
+  } else if (ev.target.dataset && ev.target.dataset.del !== undefined){
+    state.projects.splice(+ev.target.dataset.del, 1); renderProjects(); recalc();
+  } else if (ev.target.id === "bkNB" || ev.target.id === "bkB"){
+    bkScen = ev.target.id === "bkNB" ? "nb" : "b";
+    document.getElementById("bkNB").classList.toggle("on", bkScen==="nb");
+    document.getElementById("bkB").classList.toggle("on", bkScen==="b");
+    recalc();
+  } else if (ev.target.id === "shareLink"){
+    copyText(shareURL()).then(() => flash("Share link copied — it contains your full scenario."));
+  } else if (ev.target.id === "emailAlex"){
+    const subj = "SPA 3 absorption scenario" + (state.reviewer ? " — " + state.reviewer : "");
+    const body = (state.notes ? state.notes + "\n\n" : "") +
+      "Open my scenario here:\n" + shareURL() +
+      "\n\n(If the link is cut off by your mail client, use the model's Download scenario (JSON) button and attach the file instead.)";
+    location.href = "mailto:alex@mosaic.us?subject=" + encodeURIComponent(subj) + "&body=" + encodeURIComponent(body);
+  } else if (ev.target.id === "dlJson"){
+    downloadFile(`spa3_scenario_${slug()}_${stamp()}.json`, "application/json",
+      JSON.stringify({exported: new Date().toISOString(), ...state}, null, 2));
+    flash("Scenario JSON downloaded — email it to Alex.");
+  } else if (ev.target.id === "dlCsv"){
+    downloadFile(`spa3_results_${slug()}_${stamp()}.csv`, "text/csv", resultsCSV());
+    flash("Results CSV downloaded.");
+  } else if (ev.target.id === "imJson"){
+    document.getElementById("fileIn").click();
+  }
+});
+document.getElementById("fileIn").addEventListener("change", ev => {
+  const f = ev.target.files[0]; if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try{
+      const s = JSON.parse(rd.result);
+      if (!s.projects || !s.rates) throw new Error("bad file");
+      state = withDefaults(s); viewingShared = false; dirty = true;
+      syncGlobals(); renderProjects(); recalc();
+      flash("Scenario imported" + (state.reviewer ? " (from " + state.reviewer + ")" : "") + ".");
+    }catch(e){ flash("Couldn't read that file — is it a scenario JSON from this model?"); }
+  };
+  rd.readAsText(f); ev.target.value = "";
+});
+syncGlobals(); renderProjects(); recalc();
+</script>
+</body>
+</html>
