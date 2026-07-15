@@ -195,13 +195,51 @@ function load(){
 function save(){ if (viewingShared && !dirty) return; localStorage.setItem(LS_KEY, JSON.stringify(state)); }
 
 // ---------- shared-scenario encoding (URL hash / JSON file) ----------
-function encodeState(){
-  const json = JSON.stringify(state);
+// Links encode only the DIFF vs DEFAULTS (v2) so URLs stay short enough for mailto.
+// Old full-state links (v1) still decode.
+function stateDiff(){
+  const D = DEFAULTS, d = {};
+  ["slow","cur","norm"].forEach(k => { if (state.rates[k] !== D.rates[k]) (d.r = d.r || {})[k] = state.rates[k]; });
+  if (state.ramp !== D.ramp) d.m = state.ramp;
+  if (state.anchor !== D.anchor) d.a = state.anchor;
+  if (state.reviewer) d.w = state.reviewer;
+  if (state.notes) d.n = state.notes;
+  if (state.projects.length !== D.projects.length) d.P = state.projects;
+  else {
+    const pd = {};
+    state.projects.forEach((p, i) => {
+      const q = D.projects[i], c = {};
+      ["n","lnb","lb","s","onb","ob","p"].forEach(k => {
+        if ((p[k] ?? null) !== (q[k] ?? null)) c[k] = p[k] ?? null;
+      });
+      if (Object.keys(c).length) pd[i] = c;
+    });
+    if (Object.keys(pd).length) d.p = pd;
+  }
+  return d;
+}
+function applyDiff(d){
+  const st = JSON.parse(JSON.stringify(DEFAULTS));
+  if (d.r) Object.assign(st.rates, d.r);
+  if (d.m !== undefined) st.ramp = d.m;
+  if (d.a !== undefined) st.anchor = d.a;
+  if (d.w !== undefined) st.reviewer = d.w;
+  if (d.n !== undefined) st.notes = d.n;
+  if (d.P) st.projects = d.P.map(p => Object.assign({n:"", lnb:0, lb:0, s:1, onb:null, ob:null, p:null}, p));
+  else if (d.p) Object.entries(d.p).forEach(([i, c]) => Object.assign(st.projects[+i], c));
+  return st;
+}
+function b64urlEncode(json){
   return btoa(unescape(encodeURIComponent(json))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+}
+function encodeState(){
+  return b64urlEncode(JSON.stringify({v:2, d: stateDiff()}));
 }
 function decodeState(s){
   s = s.replace(/-/g,"+").replace(/_/g,"/"); while (s.length % 4) s += "=";
-  return withDefaults(JSON.parse(decodeURIComponent(escape(atob(s)))));
+  const obj = JSON.parse(decodeURIComponent(escape(atob(s))));
+  if (obj && obj.v === 2) return applyDiff(obj.d || {});
+  return withDefaults(obj);   // v1 full-state links
 }
 function shareURL(){
   return location.href.split("#")[0] + "#s=" + encodeState();
@@ -403,9 +441,9 @@ function syncGlobals(){
   document.getElementById("reviewer").value = state.reviewer || "";
   document.getElementById("notes").value = state.notes || "";
 }
-function flash(msg){
+function flash(msg, ms){
   const el = document.getElementById("shareMsg");
-  el.textContent = msg; setTimeout(() => { if (el.textContent === msg) el.textContent = ""; }, 4000);
+  el.textContent = msg; setTimeout(() => { if (el.textContent === msg) el.textContent = ""; }, ms || 4000);
 }
 function copyText(txt){
   if (navigator.clipboard && navigator.clipboard.writeText)
@@ -482,11 +520,18 @@ document.addEventListener("click", ev => {
   } else if (ev.target.id === "shareLink"){
     copyText(shareURL()).then(() => flash("Share link copied — it contains your full scenario."));
   } else if (ev.target.id === "emailAlex"){
+    const url = shareURL();
+    copyText(url);                                  // backup: link is on the clipboard either way
     const subj = "SPA 3 absorption scenario" + (state.reviewer ? " — " + state.reviewer : "");
-    const body = (state.notes ? state.notes + "\n\n" : "") +
-      "Open my scenario here:\n" + shareURL() +
-      "\n\n(If the link is cut off by your mail client, use the model's Download scenario (JSON) button and attach the file instead.)";
-    location.href = "mailto:alexmpollack@gmail.com?subject=" + encodeURIComponent(subj) + "&body=" + encodeURIComponent(body);
+    let body = (state.notes ? state.notes + "\n\n" : "") + "Open my scenario here:\n" + url + "\n";
+    let href = "mailto:alexmpollack@gmail.com?subject=" + encodeURIComponent(subj) + "&body=" + encodeURIComponent(body);
+    if (href.length > 1900){                        // mailto too long for some mail handlers — send short body instead
+      body = (state.notes ? state.notes + "\n\n" : "") +
+        "My scenario link is on my clipboard — pasting it here:\n\n(press Cmd+V / Ctrl+V)\n";
+      href = "mailto:alexmpollack@gmail.com?subject=" + encodeURIComponent(subj) + "&body=" + encodeURIComponent(body);
+    }
+    location.href = href;
+    flash("Opening your email app… If no email window appeared, your scenario link was COPIED — just paste it into any email or text to Alex.", 12000);
   } else if (ev.target.id === "dlJson"){
     downloadFile(`spa3_scenario_${slug()}_${stamp()}.json`, "application/json",
       JSON.stringify({exported: new Date().toISOString(), ...state}, null, 2));
