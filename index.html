@@ -71,7 +71,7 @@ display:none;white-space:nowrap;z-index:5}
 <div class="wrap">
 <div class="confidential">CONFIDENTIAL — for invited review only · please do not redistribute</div>
 <h1>SPA 3 Absorption Scenario Model</h1>
-<div style="font-size:12px;color:var(--mut,#888);margin:2px 0 8px">Rev 7/16: corrected a double count — the former “SPA 3 actives” row overlapped the RV and MMR project rows (and RV Parcel 3 is part of the same Century deal). Those projects now start 2027 at balances net of expected 2H-2026 absorption at each project's LTM pace; 2026 shows the actual-year anchor.</div>
+<div style="font-size:12px;color:var(--mut,#888);margin:2px 0 8px">Rev 7/16: corrected a double count — the former “SPA 3 actives” row overlapped the RV and MMR project rows (and RV Parcel 3 is part of the same Century deal). Those projects now start 2027 at balances net of expected 2H-2026 absorption at each project's LTM pace; 2026 shows the actual-year anchor. Lennar Ph1 updated to 7 stores per the builder's business plan.</div>
 <div class="sub">Sewer bond approved (750k GPD expansion) vs no approval — store-based engine.
 Edit anything: values recalc live and persist in this browser. Sources: Zonda lot inventory &amp; absorption (6/2026) ·
 SPA 3 WRF capacity tracking (4/2026) · 750k GPD expansion proforma (6/2026) · plat recount / sewer waterfall (7/2026).</div>
@@ -164,7 +164,7 @@ const DEFAULTS = {
   projects:[
     {n:"RV / Century (196 at 1/1/27; Foothills+Overlook+Parcel 3)", lnb:196, lb:196, s:3, onb:2027, ob:2027, p:null},
     {n:"MMR Phase 1 (TNHC/Meritage; 376 at 1/1/27)",        lnb:376,  lb:376,  s:4, onb:2027, ob:2027, p:null},
-    {n:"Lennar SF Phase 1",                                 lnb:809,  lb:809,  s:6, onb:2027, ob:2027, p:null},
+    {n:"Lennar SF Phase 1 (7 stores per builder plan)",     lnb:809,  lb:809,  s:7, onb:2027, ob:2027, p:null},
     {n:"SF Phase 2",                                        lnb:560,  lb:560,  s:5, onb:2028, ob:2028, p:null},
     {n:"SF Phase 3",                                        lnb:558,  lb:558,  s:5, onb:2029, ob:2029, p:null},
     {n:"Desert Trails — sewered (of 1,954)",                lnb:881,  lb:881,  s:5, onb:2029, ob:2029, p:null},
@@ -181,7 +181,7 @@ const DEFAULTS = {
     {n:"SF Phase 5 + other",                                lnb:0,    lb:519,  s:3, onb:null, ob:2032, p:null},
   ]
 };
-const LS_KEY = "spa3_absorption_model_v4";   // v4 = 7/16 correction — removed the actives/RV/MMR double count; RV+MMR start 2027 at 1/1/27 balances (196/376) net of 2H-26 LTM burn; 2026 = historical anchor
+const LS_KEY = "spa3_absorption_model_v5";   // v5 = 7/16b — Lennar Ph1 at 7 stores (builder business plan); v4 removed the actives/RV/MMR double count; 2026 = historical anchor
 let bkScen = "nb";
 let viewingShared = false, dirty = false, lastRuns = null;
 
