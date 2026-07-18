@@ -71,6 +71,7 @@ display:none;white-space:nowrap;z-index:5}
 <div class="wrap">
 <div class="confidential">CONFIDENTIAL — for invited review only · please do not redistribute</div>
 <h1>SPA 3 Absorption Scenario Model</h1>
+<div style="font-size:12px;color:var(--mut,#888);margin:2px 0 8px">Rev 7/16: corrected a double count — the former “SPA 3 actives” row overlapped the RV and MMR project rows (and RV Parcel 3 is part of the same Century deal). Those projects now start 2027 at balances net of expected 2H-2026 absorption at each project's LTM pace; 2026 shows the actual-year anchor.</div>
 <div class="sub">Sewer bond approved (750k GPD expansion) vs no approval — store-based engine.
 Edit anything: values recalc live and persist in this browser. Sources: Zonda lot inventory &amp; absorption (6/2026) ·
 SPA 3 WRF capacity tracking (4/2026) · 750k GPD expansion proforma (6/2026) · plat recount / sewer waterfall (7/2026).</div>
@@ -161,10 +162,9 @@ const YEARS = []; for (let y=2026; y<=2040; y++) YEARS.push(y);
 const DEFAULTS = {
   rates:{slow:1.90, cur:3.08, norm:4.00}, ramp:0.5, anchor:147, reviewer:"", notes:"",
   projects:[
-    {n:"SPA 3 actives (Century ×2, Meritage, Risewell ×3)", lnb:506,  lb:506,  s:6, onb:2026, ob:2026, p:null},
+    {n:"RV / Century (196 at 1/1/27; Foothills+Overlook+Parcel 3)", lnb:196, lb:196, s:3, onb:2027, ob:2027, p:null},
+    {n:"MMR Phase 1 (TNHC/Meritage; 376 at 1/1/27)",        lnb:376,  lb:376,  s:4, onb:2027, ob:2027, p:null},
     {n:"Lennar SF Phase 1",                                 lnb:809,  lb:809,  s:6, onb:2027, ob:2027, p:null},
-    {n:"Rancho Vista Parcel 3 (Century)",                   lnb:116,  lb:116,  s:1, onb:2027, ob:2027, p:null},
-    {n:"MMR Phase 1 remaining (TNHC/Meritage)",             lnb:415,  lb:415,  s:4, onb:2027, ob:2027, p:null},
     {n:"SF Phase 2",                                        lnb:560,  lb:560,  s:5, onb:2028, ob:2028, p:null},
     {n:"SF Phase 3",                                        lnb:558,  lb:558,  s:5, onb:2029, ob:2029, p:null},
     {n:"Desert Trails — sewered (of 1,954)",                lnb:881,  lb:881,  s:5, onb:2029, ob:2029, p:null},
@@ -181,7 +181,7 @@ const DEFAULTS = {
     {n:"SF Phase 5 + other",                                lnb:0,    lb:519,  s:3, onb:null, ob:2032, p:null},
   ]
 };
-const LS_KEY = "spa3_absorption_model_v3";   // v3 = 7/9 regen — clears saved browser state; baseline: Ph2 label, Ph3 2029, Ana Mandara 839 bond
+const LS_KEY = "spa3_absorption_model_v4";   // v4 = 7/16 correction — removed the actives/RV/MMR double count; RV+MMR start 2027 at 1/1/27 balances (196/376) net of 2H-26 LTM burn; 2026 = historical anchor
 let bkScen = "nb";
 let viewingShared = false, dirty = false, lastRuns = null;
 
@@ -267,13 +267,19 @@ function simulate(scen, rate){           // scen: "nb" | "b"
   const per = state.projects.map(() => []);
   const annual = [], stores = [];
   YEARS.forEach(yr => {
+    if (yr === 2026){
+      // Historical anchor: 2026 = actual pace at the six open RV/MMR communities.
+      // Project pools are 1/1/27 balances (net of 2H-26 burn), so nothing draws down in 2026.
+      state.projects.forEach((p, i) => per[i].push(0));
+      annual.push(+state.anchor || 0); stores.push(6);
+      return;
+    }
     let tot = 0, st = 0;
     state.projects.forEach((p, i) => {
       const oy = scen==="nb" ? p.onb : p.ob;
       if (oy == null || yr < oy || rem[i] <= 0){ per[i].push(0); return; }
       const r = (p.p != null && p.p !== "") ? +p.p : rate;
       let pace = p.s * r * 12 * (yr === oy ? state.ramp : 1);
-      if (yr === 2026) pace = state.anchor;
       const sold = Math.min(pace, rem[i]);
       rem[i] -= sold; tot += sold; st += p.s;
       per[i].push(sold);
