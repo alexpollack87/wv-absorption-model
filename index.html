@@ -71,7 +71,7 @@ display:none;white-space:nowrap;z-index:5}
 <div class="wrap">
 <div class="confidential">CONFIDENTIAL — for invited review only · please do not redistribute</div>
 <h1>SPA 3 Absorption Scenario Model</h1>
-<div style="font-size:12px;color:var(--mut,#888);margin:2px 0 8px">Rev 7/16: corrected a double count — the former “SPA 3 actives” row overlapped the RV and MMR project rows (and RV Parcel 3 is part of the same Century deal). Those projects now start 2027 at balances net of expected 2H-2026 absorption at each project's LTM pace; 2026 shows the actual-year anchor. Lennar Ph1 updated to 7 stores per the builder's business plan.</div>
+<div style="font-size:12px;color:var(--mut,#888);margin:2px 0 8px">Rev 7/22: folds in Mike Schwab's review (confirmed with Elliott and Mike in the 7/21 working session) — store counts and open years updated across the roster (SF Ph3 opens 2028, Ph4 2030, Buena Vista Ranch 2033, Ana Mandara 2028; bond-roster paces refreshed). Lennar corrected to 810 lots with closings starting Jan-2027 per the builder's 7/20 forecast (no 2026 closings). Prior revs: 7/16 double-count fix; 7 stores.</div>
 <div class="sub">Sewer bond approved (750k GPD expansion) vs no approval — store-based engine.
 Edit anything: values recalc live and persist in this browser. Sources: Zonda lot inventory &amp; absorption (6/2026) ·
 SPA 3 WRF capacity tracking (4/2026) · 750k GPD expansion proforma (6/2026) · plat recount / sewer waterfall (7/2026).</div>
@@ -162,26 +162,26 @@ const YEARS = []; for (let y=2026; y<=2040; y++) YEARS.push(y);
 const DEFAULTS = {
   rates:{slow:1.90, cur:3.08, norm:4.00}, ramp:0.5, anchor:147, reviewer:"", notes:"",
   projects:[
-    {n:"RV / Century (196 at 1/1/27; Foothills+Overlook+Parcel 3)", lnb:196, lb:196, s:3, onb:2027, ob:2027, p:null},
-    {n:"MMR Phase 1 (TNHC/Meritage; 376 at 1/1/27)",        lnb:376,  lb:376,  s:4, onb:2027, ob:2027, p:null},
-    {n:"Lennar SF Phase 1 (7 stores per builder plan)",     lnb:809,  lb:809,  s:7, onb:2027, ob:2027, p:null},
-    {n:"SF Phase 2",                                        lnb:560,  lb:560,  s:5, onb:2028, ob:2028, p:null},
-    {n:"SF Phase 3",                                        lnb:558,  lb:558,  s:5, onb:2029, ob:2029, p:null},
-    {n:"Desert Trails — sewered (of 1,954)",                lnb:881,  lb:881,  s:5, onb:2029, ob:2029, p:null},
-    {n:"Buena Vista Ranch — sewered (of 1,285)",            lnb:631,  lb:631,  s:4, onb:2030, ob:2030, p:null},
-    {n:"Ana Mandara — sewered 589 + 750k 250 (of 1,113)",   lnb:589,  lb:839,  s:4, onb:2030, ob:2030, p:null},
-    {n:"SF Phase 4 (812 alloc; 777 covered w/o bond)",      lnb:777,  lb:812,  s:5, onb:2031, ob:2031, p:null},
-    {n:"MMR expansion / MMI (bond)",                        lnb:0,    lb:975,  s:5, onb:null, ob:2030, p:null},
-    {n:"Surprise 120 — Shokoohi/Cork",                      lnb:0,    lb:370,  s:2, onb:null, ob:2030, p:null},
-    {n:"Surprise 140 W/E — Mattamy+Beazer escrows",         lnb:0,    lb:525,  s:3, onb:null, ob:2030, p:null},
-    {n:"Desert Moon — Jewel",                               lnb:0,    lb:163,  s:1, onb:null, ob:2030, p:null},
-    {n:"Surprise 320 — Triangle Partners",                  lnb:0,    lb:833,  s:5, onb:null, ob:2031, p:null},
-    {n:"Surprise 295 — Hampton",                            lnb:0,    lb:873,  s:5, onb:null, ob:2031, p:null},
-    {n:"Surprise 233 — Kazan",                              lnb:0,    lb:400,  s:2, onb:null, ob:2031, p:null},
-    {n:"SF Phase 5 + other",                                lnb:0,    lb:519,  s:3, onb:null, ob:2032, p:null},
+    {n:"RV / Century (196 at 1/1/27; Foothills+Overlook+Parcel 3)", lnb:196, lb:196, s:2, onb:2027, ob:2027, p:null},
+    {n:"MMR Phase 1 (TNHC/Meritage; 376 at 1/1/27)",        lnb:376,  lb:376,  s:3, onb:2027, ob:2027, p:null},
+    {n:"Lennar SF Phase 1 (810 lots; COEs start Jan-27, 7 stores)", lnb:810,  lb:810,  s:7, onb:2027, ob:2027, p:null},
+    {n:"SF Phase 2",                                        lnb:560,  lb:560,  s:4, onb:2028, ob:2028, p:null},
+    {n:"SF Phase 3",                                        lnb:558,  lb:558,  s:4, onb:2028, ob:2028, p:null},
+    {n:"Desert Trails — sewered (of 1,954)",                lnb:881,  lb:881,  s:4, onb:2029, ob:2029, p:null},
+    {n:"Buena Vista Ranch — sewered (of 1,285)",            lnb:631,  lb:631,  s:4, onb:2033, ob:2033, p:null},
+    {n:"Ana Mandara — sewered 589 + 750k 250 (of 1,113)",   lnb:589,  lb:839,  s:4, onb:2028, ob:2028, p:null},
+    {n:"SF Phase 4 (812 alloc; 777 covered w/o bond)",      lnb:777,  lb:812,  s:5, onb:2030, ob:2030, p:null},
+    {n:"MMR expansion / MMI (bond)",                        lnb:0,    lb:975,  s:6, onb:null, ob:2029, p:null},
+    {n:"Surprise 120 — Shokoohi/Cork",                      lnb:0,    lb:370,  s:3, onb:null, ob:2031, p:null},
+    {n:"Surprise 140 W/E — Mattamy+Beazer escrows",         lnb:0,    lb:525,  s:5, onb:null, ob:2029, p:null},
+    {n:"Desert Moon — Jewel",                               lnb:0,    lb:163,  s:2, onb:null, ob:2032, p:null},
+    {n:"Surprise 320 — Triangle Partners",                  lnb:0,    lb:833,  s:6, onb:null, ob:2031, p:null},
+    {n:"Surprise 295 — Hampton",                            lnb:0,    lb:873,  s:4, onb:null, ob:2030, p:null},
+    {n:"Surprise 233 — Kazan",                              lnb:0,    lb:400,  s:3, onb:null, ob:2033, p:null},
+    {n:"SF Phase 5 + other",                                lnb:0,    lb:519,  s:3, onb:null, ob:2031, p:null},
   ]
 };
-const LS_KEY = "spa3_absorption_model_v5";   // v5 = 7/16b — Lennar Ph1 at 7 stores (builder business plan); v4 removed the actives/RV/MMR double count; 2026 = historical anchor
+const LS_KEY = "spa3_absorption_model_v6";   // v6 = 7/22 — Mike Schwab review folded in (confirmed live w/ Elliott 7/21) + Lennar 810 lots, zero 2026 COEs per builder P10; v5 = 7 stores; v4 = double-count fix
 let bkScen = "nb";
 let viewingShared = false, dirty = false, lastRuns = null;
 
